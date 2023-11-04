@@ -38,6 +38,17 @@ async function run() {
   try {
     // await client.connect();
 
+    const allFoodCollection = client.db('savorSpot').collection('foods');
+    const orderedFoodsCollection = client.db('savorSpot').collection('orderedFoods');
+
+    
+    // add single food api
+    app.post('/add-food', async (req, res) => {
+      const newFood = req.body;
+      const result = await allFoodCollection.insertOne(newFood);
+      res.send(result)
+    })
+
 
 
     
