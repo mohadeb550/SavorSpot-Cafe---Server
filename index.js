@@ -42,6 +42,19 @@ async function run() {
     const orderedFoodsCollection = client.db('savorSpot').collection('orderedFoods');
 
 
+
+    app.get('/all-foods', async (req, res) => {
+      const foodName = req.query.name;
+      const query = {};
+
+      if(foodName){
+        query.foodName = { $regex : foodName, $options: 'i'}
+      }
+
+      const foods = await allFoodCollection.find(query).toArray();
+      res.send(foods);
+    })
+
     // get user based added food items
     app.get('/my-added-foods', async (req, res) => {
       const userEmail = req.query.email;
