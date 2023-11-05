@@ -44,15 +44,19 @@ async function run() {
 
 
     app.get('/all-foods', async (req, res) => {
+      const skip = parseInt(req.query.skip);
+      const size = parseInt(req.query.size);
+
       const foodName = req.query.name;
       const query = {};
 
       if(foodName){
         query.foodName = { $regex : foodName, $options: 'i'}
       }
+      const totalFood = await allFoodCollection.estimatedDocumentCount();
 
-      const foods = await allFoodCollection.find(query).toArray();
-      res.send(foods);
+      const foods = await allFoodCollection.find(query).skip(skip).limit(size).toArray();
+      res.send({totalFood, foods})
     })
 
     // get user based added food items
