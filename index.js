@@ -41,6 +41,23 @@ async function run() {
     const allFoodCollection = client.db('savorSpot').collection('foods');
     const orderedFoodsCollection = client.db('savorSpot').collection('orderedFoods');
 
+
+    // get user based added food items
+    app.get('/my-added-foods', async (req, res) => {
+      const userEmail = req.query.email;
+      const query = { addedUserEmail : userEmail};
+      const foods = await allFoodCollection.find(query).toArray();
+      res.send(foods);
+    })
+
+    // get a single food with food Id
+
+    app.get('/single-food/:id', async (req, res) => {
+      const foodId = req.params.id;
+      const query = { _id : new ObjectId(foodId)};
+      const singleFood = await allFoodCollection.findOne(query);
+      res.send(singleFood)
+    })
     
     // add single food api
     app.post('/add-food', async (req, res) => {
@@ -49,6 +66,17 @@ async function run() {
       res.send(result)
     })
 
+    // update single food data
+    app.put('/update-food/:id', async (req, res) => {
+      const foodId = req.params.id;
+      const updatedFood = req.body;
+      const query = {_id : new ObjectId(foodId)}
+      const updatedDoc = {
+        $set: {...updatedFood}
+      }
+      const result = await allFoodCollection.updateOne(query, updatedDoc);
+      res.send(result)
+    })
 
 
     
