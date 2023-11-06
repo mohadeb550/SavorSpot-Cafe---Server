@@ -75,6 +75,13 @@ async function run() {
       const singleFood = await allFoodCollection.findOne(query);
       res.send(singleFood)
     })
+
+    app.get('/ordered-foods', async (req, res)=> {
+      const userEmail = req.query.email;
+      const query = { orderedEmail : userEmail}
+      const foods = await orderedCollection.find(query).toArray();
+      res.send(foods)
+    })
     
     // add single food api
     app.post('/add-food', async (req, res) => {
@@ -118,6 +125,14 @@ async function run() {
       }
       const result = await allFoodCollection.updateOne(query, updatedFood);
       res.send(result)
+    })
+
+    // delete single food in cart 
+    app.delete('/delete-food/:id', async (req, res) => {
+      const foodId = req.params.id;
+      const query = { _id : new ObjectId(foodId)};
+      const result = await orderedCollection.deleteOne(query);
+      res.send(result);
     })
 
 
