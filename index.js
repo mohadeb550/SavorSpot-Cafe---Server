@@ -11,7 +11,7 @@ const cookieParser = require('cookie-parser');
 // use middleWare 
 
 app.use(cors({
-  origin:['http://localhost:5173'],
+  origin:['http://localhost:5174'],
   credentials: true
 }));
 app.use(express.json())
@@ -57,6 +57,14 @@ async function run() {
 
       const foods = await allFoodCollection.find(query).skip(skip).limit(size).toArray();
       res.send({totalFood, foods})
+    })
+
+    // get top 6 food depends on most ordered value
+
+    app.get('/top-foods', async (req, res) => {
+
+      const topFoods = await allFoodCollection.find().sort({ ordered: -1 }).limit(6).toArray();
+      res.send(topFoods)
     })
 
     // get user based added food items
