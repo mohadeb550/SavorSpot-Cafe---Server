@@ -39,7 +39,7 @@ async function run() {
     // await client.connect();
 
     const allFoodCollection = client.db('savorSpot').collection('foods');
-    const orderedFoodsCollection = client.db('savorSpot').collection('orderedFoods');
+    const orderedCollection = client.db('savorSpot').collection('orderedFoods');
 
 
 
@@ -83,6 +83,20 @@ async function run() {
       res.send(result)
     })
 
+    // insert ordered food in orderedCollection
+
+    app.put('/order-food/:id', async (req, res) => {
+      const id = req.params.id;
+      const orderedFood = req.body;
+      const query = { mainFoodId : id}
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {...orderedFood}
+      }
+      const result = await orderedCollection.updateOne(query, updatedDoc, options);
+      res.send(result)
+    })
+
     // update single food data
     app.put('/update-food/:id', async (req, res) => {
       const foodId = req.params.id;
@@ -92,6 +106,17 @@ async function run() {
         $set: {...updatedFood}
       }
       const result = await allFoodCollection.updateOne(query, updatedDoc);
+      res.send(result)
+    })
+
+    app.patch('/update-quantity/:id', async (req, res) => {
+      const foodId = req.params;
+      const newChanges = req.body;
+      const query = { _id : new ObjectId(foodId)};
+      const updatedFood = {
+        $set : newChanges
+      }
+      const result = await allFoodCollection.updateOne(query, updatedFood);
       res.send(result)
     })
 
