@@ -11,11 +11,42 @@ const cookieParser = require('cookie-parser');
 // use middleWare 
 
 app.use(cors({
-  origin:['http://localhost:5174'],
+  origin:['http://localhost:5173'],
   credentials: true
 }));
 app.use(express.json())
 app.use(cookieParser())
+
+
+// custom middleware
+const verifyToken = (req, res, next) => {
+  const token = req.cookies.token;
+  if(!token){
+    return res.status(401).send({ message: 'Unauthorized access'})
+  }
+  if(token){
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decode) => {
+      if(error){
+        return res.status(401).send({message : 'Unauthorized access'})
+      }
+      req.user = decode;
+      next();
+    })
+  }
+}
+
+  // check the requested user is same or not!
+
+  const checkSameUser = (req, res, next ) => {
+    const requestedUserEmail = req.query.email;
+    const tokenDecodedEmail = req.user.email;
+
+    if(requestedUserEmail !== tokenDecodedEmail){
+      return res.status(403).send({message : 'Forbidden bad request'})
+    }else{
+      next();
+    }
+  }
 
 
 
@@ -40,8 +71,29 @@ async function run() {
 
     const allFoodCollection = client.db('savorSpot').collection('foods');
     const orderedCollection = client.db('savorSpot').collection('orderedFoods');
+    const specialCollection = client.db('savorSpot').collection('specialMenus');
 
 
+
+    // generate jwt toker for user
+    app.post('/jwt', async (req, res) => {
+      const userEmail = req.body;
+      const token = jwt.sign(userEmail, process.env.ACCESS_TOKEN_SECRET, {expiresIn : '1h'})
+     res.cookie( 'token', token, { httpOnly: true, secure: false})
+     .send({success : true})
+    })
+
+    // clear client side cookie
+    app.get('/logout', async (req, res) => {
+      res.clearCookie('token', {maxAge: '0'})
+      .send({success : true})
+    })
+
+
+    app.get('/special-menu', async (req, res) => {
+      const result = await specialCollection.find().toArray();
+      res.send(result)
+    })
 
     app.get('/all-foods', async (req, res) => {
       const skip = parseInt(req.query.skip);
@@ -68,7 +120,7 @@ async function run() {
     })
 
     // get user based added food items
-    app.get('/my-added-foods', async (req, res) => {
+    app.get('/my-added-foods', verifyToken, checkSameUser,  async (req, res) => {
       const userEmail = req.query.email;
       const query = { addedUserEmail : userEmail};
       const foods = await allFoodCollection.find(query).toArray();
@@ -84,7 +136,7 @@ async function run() {
       res.send(singleFood)
     })
 
-    app.get('/ordered-foods', async (req, res)=> {
+    app.get('/ordered-foods', verifyToken, checkSameUser, async (req, res)=> {
       const userEmail = req.query.email;
       const query = { orderedEmail : userEmail}
       const foods = await orderedCollection.find(query).toArray();
