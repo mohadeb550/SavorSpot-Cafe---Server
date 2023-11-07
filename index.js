@@ -98,16 +98,27 @@ async function run() {
     app.get('/all-foods', async (req, res) => {
       const skip = parseInt(req.query.skip);
       const size = parseInt(req.query.size);
+      const sortType = parseInt(req.query.sort);
+      const selectedCategory = req.query.category;
 
       const foodName = req.query.name;
       const query = {};
+      const sortData = {};
 
       if(foodName){
         query.foodName = { $regex : foodName, $options: 'i'}
       }
+
+      if(sortType){
+        sortData.price = sortType;
+      }
+      if(selectedCategory){
+        query.category = selectedCategory;
+      }
+
       const totalFood = await allFoodCollection.estimatedDocumentCount();
 
-      const foods = await allFoodCollection.find(query).skip(skip).limit(size).toArray();
+      const foods = await allFoodCollection.find(query).skip(skip).limit(size).sort(sortData).toArray();
       res.send({totalFood, foods})
     })
 
