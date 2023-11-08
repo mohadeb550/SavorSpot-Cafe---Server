@@ -72,6 +72,7 @@ async function run() {
     const allFoodCollection = client.db('savorSpot').collection('foods');
     const orderedCollection = client.db('savorSpot').collection('orderedFoods');
     const specialCollection = client.db('savorSpot').collection('specialMenus');
+    const userCollection  = client.db('savorSpot').collection('users');
 
 
 
@@ -186,6 +187,22 @@ async function run() {
       const result = await allFoodCollection.updateOne(query, updatedDoc);
       res.send(result)
     })
+
+    // user save after signup/login
+
+    app.put('/save-user', async (req, res) => {
+      
+      const userInfo = req.body;
+      const query = { email : userInfo.email}
+      const options = { upsert: true };
+      const updatedDoc = {
+        $set: {...userInfo}
+      }
+      const result = await userCollection.updateOne(query, updatedDoc, options);
+      res.send(result)
+    })
+
+    // update quantity/top order count after remove item from cart
 
     app.patch('/update-quantity/:id', async (req, res) => {
       const foodId = req.params;
