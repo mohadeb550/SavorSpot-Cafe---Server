@@ -11,7 +11,7 @@ const cookieParser = require('cookie-parser');
 // use middleWare 
 
 app.use(cors({
-  origin:['http://localhost:5173'],
+  origin:['https://savorspot-cafe.web.app'],
   credentials: true
 }));
 app.use(express.json())
@@ -78,9 +78,10 @@ async function run() {
 
     // generate jwt toker for user
     app.post('/jwt', async (req, res) => {
+
       const userEmail = req.body;
       const token = jwt.sign(userEmail, process.env.ACCESS_TOKEN_SECRET, {expiresIn : '1h'})
-     res.cookie( 'token', token, { httpOnly: true, secure: false})
+     res.cookie( 'token', token, { httpOnly: true , secure: true, sameSite:'none'})
      .send({success : true})
     })
 
